@@ -1,0 +1,180 @@
+﻿<!doctype html>
+<!--
+The MIT License (MIT)
+
+Copyright (c) 2015 Alexandre Lagane
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Recorder Project</title>
+	<style>
+		* {
+			padding: 0px;
+			margin: 0px;
+			font-family: sans-serif
+		}
+		
+		#menu {
+			padding: 10px;
+			border-bottom: 2px solid black;
+		}
+		
+		#menu button {
+			border: 2px solid black;
+			border-radius: 5px;
+			background-color: white;
+		}
+		
+		#partition {
+			padding: 10px;
+		}
+		
+		#partition>div {
+			margin-bottom: 10px;
+			display: inline-block;
+		}
+		
+		.tablature {
+			display: inline-block;
+			list-style-type: none;
+			border: 2px solid black;
+			border-radius: 5px;
+			padding: 0px;
+		}
+		
+		.trou {
+			border: 2px solid black;
+			border-radius: 10px;
+			width: 10px;
+			height: 10px;
+			margin: 10px;
+			padding: 0px;
+		}
+		
+		.espace {
+			height: 5px;
+		}
+		
+		.double {
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		
+		.double .trou {
+			display: inline-block;
+			border-radius: 5px;
+			width: 5px;
+			height: 5px;
+			margin: 2px;
+		}
+		
+		.plein {
+			background-color: black;
+		}
+		.vide {
+			background-color: white;
+		}
+		.demi {
+			background: -webkit-linear-gradient(white, black); /* For Safari 5.1 to 6.0 */
+			background: -o-linear-gradient(white, black); /* For Opera 11.1 to 12.0 */
+			background: -moz-linear-gradient(white, black); /* For Firefox 3.6 to 15 */
+			background: linear-gradient(white, black); /* Standard syntax */
+		}
+		
+		.label {
+			text-align: center;
+		}
+	</style>
+	<script>
+		var bouchage = ["vide", "demi", "plein"];
+		
+		var tabs = {};
+		tabs["do"] = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+		tabs["do#"] = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0];
+		tabs["re"] = [2, 2, 2, 2, 2, 2, 2, 2, 0, 0];
+		tabs["mib"] = [2, 2, 2, 2, 2, 2, 2, 0, 0, 0];
+		tabs["mi"] = [2, 2, 2, 2, 2, 2, 0, 0, 0, 0];
+		tabs["fa"] = [2, 2, 2, 2, 2, 0, 2, 2, 2, 2];
+		tabs["fa#"] = [2, 2, 2, 2, 0, 2, 2, 2, 0, 0];
+		tabs["sol"] = [2, 2, 2, 2, 0, 0, 0, 0, 0, 0];
+		tabs["sol#"] = [2, 2, 2, 0, 2, 2, 0, 0, 0, 0];
+		tabs["sol"] = [2, 2, 2, 2, 0, 0, 0, 0, 0, 0];
+		tabs["la"] = [2, 2, 2, 0, 0, 0, 0, 0, 0, 0];
+		tabs["sib"] = [2, 2, 0, 2, 2, 0, 0, 0, 0, 0];
+		tabs["si"] = [2, 2, 0, 0, 0, 0, 0, 0, 0, 0];
+		tabs["do+"] = [2, 0, 2, 0, 0, 0, 0, 0, 0, 0];
+		tabs["do#+"] = [0, 2, 2, 0, 0, 0, 0, 0, 0, 0];
+		tabs["re+"] = [0, 0, 2, 0, 0, 0, 0, 0, 0, 0];
+		tabs["mib+"] = [0, 2, 2, 2, 2, 2, 2, 2, 0, 0];
+		tabs["mi+"] = [1, 2, 2, 2, 2, 2, 0, 0, 0, 0];
+		tabs["fa+"] = [1, 2, 2, 2, 2, 0, 2, 2, 0, 0];
+		tabs["fa#+"] = [1, 2, 2, 2, 0, 2, 0, 0, 0, 0];
+		tabs["sol+"] = [1, 2, 2, 2, 0, 0, 0, 0, 0, 0];
+		// Des notes peuvent être ajoutées.
+		function init() {
+			var entree = prompt("Veuillez rentrer une mélodie :\nNote normale : nom de la note sans accent en minuscules\nNote bémole : nom de la note avec un b à la fin\nNote dièse : nom de la note avec un # à la fin\nNote de l'octave suivante : nom de la note (avec bémole ou dièse si besoin) avec un + à la fin\n\nExemple : sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol");
+			generer(entree);
+		}
+		
+		function generer(melodie) {
+			document.getElementById("partition").innerHTML = melodie.replace(/(\S*)\s*/g, '<div class="$1"></div>');
+			for (var key in tabs) {
+				var tab = tabs[key];
+				var tablature = '<ul class="tablature"><li class="trou ' + bouchage[tab[0]] + '"></li><li class="espace"></li><li class="trou ' + bouchage[tab[1]] + '"></"></li><li class="trou ' + bouchage[tab[2]] + '"></"></li><li class="trou ' + bouchage[tab[3]] + '"></"></li><li class="espace"></li><li class="trou ' + bouchage[tab[4]] + '"></"></li><li class="trou ' + bouchage[tab[5]] + '"></"></li><li class="double"><div class="trou ' + bouchage[tab[6]] + '"></"></div><div class="trou ' + bouchage[tab[7]] + '"></"></div></li><li class="double"><div class="trou ' + bouchage[tab[8]] + '"></"></div><div class="trou ' + bouchage[tab[9]] + '"></"></div></li></ul><p class="label">' + key + '</p>';
+				var notes = document.getElementsByClassName(key);
+				for (var i = 0; i < notes.length; i++) {
+					notes[i].innerHTML = tablature;
+				}
+			}
+		}
+		
+		function afficher_notes() {
+			var labels = document.getElementsByClassName("label");
+			for (var i = 0; i < labels.length; i++) {
+				labels[i].style.display = "";
+			}
+			document.getElementById("toggle_affichage_notes").onclick = cacher_notes;
+			document.getElementById("toggle_affichage_notes").innerHTML = 'Cacher les notes';
+		}
+		
+		function cacher_notes() {
+			var labels = document.getElementsByClassName("label");
+			for (var i = 0; i < labels.length; i++) {
+				labels[i].style.display = 'none';
+			}
+			document.getElementById("toggle_affichage_notes").onclick = afficher_notes;
+			document.getElementById("toggle_affichage_notes").innerHTML = 'Afficher les notes';
+		}
+	</script>
+</head>
+	<body>
+		<div id="menu">
+			<button id="toggle_affichage_notes" onclick="cacher_notes()">Cacher les notes</button>
+			<button onclick="init()">Convertir une mélodie</button>
+			<button onclick="generer('sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si do+ re+ mi+ fa+ re+ si do+')">The Wind Waker (partie 1)</button>
+			<button disabled><i>The Wind Waker (partie 2)</i></button>
+		</div>
+		<div id="partition">
+		</div>
+	</body>
+</html>

@@ -1,0 +1,13 @@
+﻿Lecture de fichiers midi :
+HTML5 :
+<input type=file id=file>
+
+JS :
+var reader = new FileReader();
+reader.onload = function() {
+    // Faire ce qu’on veut de reader.result ici
+}
+reader.readAsBinaryString(document.getElementById('file').files[0]);
+
+Ajout d'une notion de rythme :
+Des tirets dans la notation pour ajouter des espaces, au moins pour les phrases, ou même des retours à la ligne, ça aiderait vachement...
