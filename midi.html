@@ -23,368 +23,424 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Recorder Project</title>
-		<style>
-			* {
-				padding: 0px;
-				margin: 0px;
-				font-family: sans-serif
-			}
-			
-			#menu {
-				padding: 10px;
-				border-bottom: 2px solid black;
-			}
-			
-			#menu button {
-				border: 2px solid black;
-				border-radius: 5px;
-				background-color: white;
-			}
-			
-			#partition {
-				padding: 10px;
-			}
-			
-			#partition>div {
-				margin-bottom: 10px;
-				display: inline-block;
-			}
-			
-			.tablature {
-				display: inline-block;
-				list-style-type: none;
-				border: 2px solid black;
-				border-radius: 5px;
-				padding: 0px;
-			}
-			
-			.trou {
-				border: 2px solid black;
-				border-radius: 10px;
-				width: 10px;
-				height: 10px;
-				margin: 10px;
-				padding: 0px;
-			}
-			
-			.espace {
-				height: 5px;
-			}
-			
-			.double {
-				text-align: center;
-				margin-left: auto;
-				margin-right: auto;
-			}
-			
-			.double .trou {
-				display: inline-block;
-				border-radius: 5px;
-				width: 5px;
-				height: 5px;
-				margin: 2px;
-			}
-			
-			.plein {
-				background-color: black;
-			}
-			.vide {
-				background-color: white;
-			}
-			.demi {
-				background: -webkit-linear-gradient(white, black); /* For Safari 5.1 to 6.0 */
-				background: -o-linear-gradient(white, black); /* For Opera 11.1 to 12.0 */
-				background: -moz-linear-gradient(white, black); /* For Firefox 3.6 to 15 */
-				background: linear-gradient(white, black); /* Standard syntax */
-			}
-			
-			.label {
-				text-align: center;
-			}
+<head>
+	<meta charset="utf-8">
+	<title>Recorder Project</title>
+	<style>
+		* {
+			padding: 0px;
+			margin: 0px;
+			font-family: sans-serif
+		}
 
-			.nonote {
-				display: inline-block;
-				list-style-type: none;
-				border: 2px solid black;
-				border-radius: 5px;
-				padding: 0px;
-			}
-		</style>
-		<script>
-			var bouchage = ["vide", "demi", "plein"];
-			
-			var note = [];
-			note[0] = "do";
-			note[1] = "do#";
-			note[2] = "re";
-			note[3] = "mib";
-			note[4] = "mi";
-			note[5] = "fa";
-			note[6] = "fa#";
-			note[7] = "sol";
-			note[8] = "sol#";
-			note[9] = "la";
-			note[10] = "sib";
-			note[11] = "si";
-			note[12] = "do+";
-			note[13] = "do#+";
-			note[14] = "re+";
-			note[15] = "mib+";
-			note[16] = "mi+";
-			note[17] = "fa+";
-			note[18] = "fa#+";
-			note[19] = "sol+";
+		#menu {
+			padding: 10px;
+			border-bottom: 2px solid black;
+		}
 
-			var tabs = {};
-			tabs["do"] = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
-			tabs["do#"] = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0];
-			tabs["re"] = [2, 2, 2, 2, 2, 2, 2, 2, 0, 0];
-			tabs["mib"] = [2, 2, 2, 2, 2, 2, 2, 0, 0, 0];
-			tabs["mi"] = [2, 2, 2, 2, 2, 2, 0, 0, 0, 0];
-			tabs["fa"] = [2, 2, 2, 2, 2, 0, 2, 2, 2, 2];
-			tabs["fa#"] = [2, 2, 2, 2, 0, 2, 2, 2, 0, 0];
-			tabs["sol"] = [2, 2, 2, 2, 0, 0, 0, 0, 0, 0];
-			tabs["sol#"] = [2, 2, 2, 0, 2, 2, 0, 0, 0, 0];
-			tabs["la"] = [2, 2, 2, 0, 0, 0, 0, 0, 0, 0];
-			tabs["sib"] = [2, 2, 0, 2, 2, 0, 0, 0, 0, 0];
-			tabs["si"] = [2, 2, 0, 0, 0, 0, 0, 0, 0, 0];
-			tabs["do+"] = [2, 0, 2, 0, 0, 0, 0, 0, 0, 0];
-			tabs["do#+"] = [0, 2, 2, 0, 0, 0, 0, 0, 0, 0];
-			tabs["re+"] = [0, 0, 2, 0, 0, 0, 0, 0, 0, 0];
-			tabs["mib+"] = [0, 2, 2, 2, 2, 2, 2, 2, 0, 0];
-			tabs["mi+"] = [1, 2, 2, 2, 2, 2, 0, 0, 0, 0];
-			tabs["fa+"] = [1, 2, 2, 2, 2, 0, 2, 2, 0, 0];
-			tabs["fa#+"] = [1, 2, 2, 2, 0, 2, 0, 0, 0, 0];
-			tabs["sol+"] = [1, 2, 2, 2, 0, 0, 0, 0, 0, 0];
-			// Des notes peuvent être ajoutées.
-			function init() {
-				var entree = prompt("Veuillez rentrer une mélodie :\nNote normale : nom de la note sans accent en minuscules\nNote bémole : nom de la note avec un b à la fin\nNote dièse : nom de la note avec un # à la fin\nNote de l'octave suivante : nom de la note (avec bémole ou dièse si besoin) avec un + à la fin\n\nExemple : sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol");
-				generer(entree);
-			}
-			
-			function generer(melodie) {
-				document.getElementById("partition").innerHTML = melodie.replace(/(\S*)\s*/g, '<div class="$1"></div>');
-				for (var key in tabs) {
-					var tab = tabs[key];
-					var tablature = '<ul class="tablature"><li class="trou ' + bouchage[tab[0]] + '"></li><li class="espace"></li><li class="trou ' + bouchage[tab[1]] + '"></"></li><li class="trou ' + bouchage[tab[2]] + '"></"></li><li class="trou ' + bouchage[tab[3]] + '"></"></li><li class="espace"></li><li class="trou ' + bouchage[tab[4]] + '"></"></li><li class="trou ' + bouchage[tab[5]] + '"></"></li><li class="double"><div class="trou ' + bouchage[tab[6]] + '"></"></div><div class="trou ' + bouchage[tab[7]] + '"></"></div></li><li class="double"><div class="trou ' + bouchage[tab[8]] + '"></"></div><div class="trou ' + bouchage[tab[9]] + '"></"></div></li></ul><p class="label">' + key + '</p>';
-					var notes = document.getElementsByClassName(key);
-					for (var i = 0; i < notes.length; i++) {
-						notes[i].innerHTML = tablature;
-					}
-				}
-				var notes = document.getElementsByClassName("undefined");
-				for (var i = 0; i < notes.length; i++) {
-					notes[i].innerHTML = '<div class="nonote">?</div><p class="label">?</p>';
-				}
-			}
-			
-			function afficher_notes() {
-				var labels = document.getElementsByClassName("label");
-				for (var i = 0; i < labels.length; i++) {
-					labels[i].style.display = "";
-				}
-				document.getElementById("toggle_affichage_notes").onclick = cacher_notes;
-				document.getElementById("toggle_affichage_notes").innerHTML = 'Cacher les notes';
-			}
-			
-			function cacher_notes() {
-				var labels = document.getElementsByClassName("label");
-				for (var i = 0; i < labels.length; i++) {
-					labels[i].style.display = 'none';
-				}
-				document.getElementById("toggle_affichage_notes").onclick = afficher_notes;
-				document.getElementById("toggle_affichage_notes").innerHTML = 'Afficher les notes';
-			}
-			
-			function charger_midi() {
-				var reader = new FileReader();
-				reader.onload = function() {
-					parser_midi(reader.result);
-				};
-				reader.readAsBinaryString(document.getElementById('file').files[0]);
-			}
+		#menu button {
+			border: 2px solid black;
+			border-radius: 5px;
+			background-color: white;
+		}
 
-			function parser_midi(midi) {
-				if (!midi.startsWith("MThd\x00\x00\x00\x06\x00")) {
-					console.log("Attention : seul le format 0 est pris en charge");
-				}
-				midi = midi.slice(14); // On saute le MThd (14 octets) pour parser directement les MTrk.
+		#partition {
+			padding: 10px;
+		}
 
-				var suites = [];
-				
-				/*
-				for (var i = 0; midi.length; i++) {
-					if (!midi.startsWith("MTrk")) {
-						console.log("Erreur : " + i + " pas de MTrk");
-						do {
-							midi = midi.slice(1);
-						} while (!midi.startsWith("MTrk") && midi.length);
-					}
-					var taille = vlq_to_int(midi.slice(4, 8));
-					alert("Taille du bloc MTrk " + i + " : " + taille);
-					suites[i] = parser_mtrk(midi.slice(8, 8 + taille));
-					midi = midi.slice (8 + taille); // On passe au MTrk suivant.
-				}
-				*/
+		#partition>div {
+			margin-bottom: 10px;
+			display: inline-block;
+		}
 
-				mtrks = get_mtrks_regex(midi);
-				for (var i = 0; i < mtrks.length; i++) {
-					suites[i] = parser_mtrk(mtrks[i]);
-				}
+		.tablature {
+			display: inline-block;
+			list-style-type: none;
+			border: 2px solid black;
+			border-radius: 5px;
+			padding: 0px;
+		}
 
-				document.getElementById("partition").innerHTML = "";
-				for (var i = 0; i < suites.length; i++) {
-					document.getElementById("partition").innerHTML += '<button onclick="generer(\'' + suite_to_notes(suites[i].tableau) + '\')">' + suites[i].nom + ' (' + suites[i].tableau.length + ' notes, MTrk de taille ' + suites[i].taille_mtrk + ')</button><p>' + suites[i].tableau + '</p>';
-				}
-			}
+		.trou {
+			border: 2px solid black;
+			border-radius: 10px;
+			width: 10px;
+			height: 10px;
+			margin: 10px;
+			padding: 0px;
+		}
 
-			function suite_to_notes(tab) {
-				var min = tab[0];
-				for (var i = 1; i < tab.length; i++) {
-					if (tab[i] < min)
-						min = tab[i];
-				}
+		.espace {
+			height: 5px;
+		}
 
-				var str = "";
-				for (var i = 0; i < tab.length; i++) {
-					if (tab[i] - min > note.length)
-						console.log("Attention : note trop haute ");
-					str += note[tab[i] - min] + " ";
-				}
+		.double {
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
 
-				return str;
-			}
+		.double .trou {
+			display: inline-block;
+			border-radius: 5px;
+			width: 5px;
+			height: 5px;
+			margin: 2px;
+		}
 
-			function parser_mtrk(mtrk) {
-				var suite = {};
-				var previous_midi_message = 0;
-				suite.nom = "Melody";
-				suite.tableau = [];
-				suite.taille_mtrk = mtrk.length;
-				while (mtrk.length) {
-					while (mtrk.charCodeAt(0) < 0x80) { // Tant que le bit 7 est à 1, on est encore dans le "delta time".
-						mtrk = mtrk.slice(1); // On saute l'octet actuel.
-					}
+		.full {
+			background-color: black;
+		}
+		.empty {
+			background-color: white;
+		}
+		.half {
+			background: linear-gradient(white, black); /* Standard syntax */
+		}
 
-					if (mtrk.charCodeAt(0) == 0xFF) { 
-						// "Meta Event"
-						mtrk = mtrk.slice(1);
-						switch (mtrk.charCodeAt(0)) {
-							case 0x03:
-								// Track Name
-							case 0x04:
-								// Instrument Name
-								suite.nom = mtrk.slice(2, 2 + mtrk.charCodeAt(1));
-								mtrk = mtrk.slice(2 + mtrk.charCodeAt(1));
-								break;
-							default:
-								mtrk = mtrk.slice(2 + mtrk.charCodeAt(1));
-						}
-					} else if (mtrk.charCodeAt(0) & 0x80) {
-						// "Midi Event"
-						switch (mtrk.charCodeAt(0) & 0xF0) {
-							case 0x80: 
-								// Any Note Off
-								mtrk = mtrk.slice(3);
-								break;
-							case 0x90: 
-								// Any Note On
-								suite.tableau.push(mtrk.charCodeAt(1));
-								mtrk = mtrk.slice(3);
-								break;
-							case 0xA0:
-								// Key Pressure
-								mtrk = mtrk.slice(3);
-								break;
-							case 0xB0:
-								// Control Change
-								mtrk = mtrk.slice(3);
-								break;
-							case 0xC0:
-								// Program Change
-								mtrk = mtrk.slice(2);
-								break;
-							case 0xD0:
-								// Channel Pressure
-								mtrk = mtrk.slice(2);
-								break;
-							case 0xE0:
-								// Pitch Bend Change
-								mtrk = mtrk.slice(3);
-								break;
-							default:
-								mtrk = mtrk.slice(1);
-						} 
-					} else {
-						console.log("Attention : event non pris en charge");
-						mtrk.slice(1);
-					}
-				}
-				return suite;
-			}
+		.label {
+			text-align: center;
+		}
 
-			function taille_meta_event(evt) {
-				switch (evt) {
-					case 0x20:
-						return 2;
-					case 0x2F:
-						return 1;
-					case 0x51:
-						return 4;
-					case 0x54:
-						return 6;
-					case 0x58:
-						return 5;
-					case 0x59:
-						return 3;
-					default:
-						return 0;
-				}
-			}
+		.nonote {
+			display: inline-block;
+			list-style-type: none;
+			border: 2px solid black;
+			border-radius: 5px;
+			padding: 0px;
+		}
+	</style>
+	<script>
+        var divLog;
+        const EMPTY = "empty",
+            HALF = "half",
+            FULL = "full";
+        var obturation = [EMPTY, HALF, FULL];
 
-			function get_mtrks_regex(midi) {
-				var re = /MTrk[\s\S]{4}([\s\S]*?)(?=MTrk|$)/g;
-				var mtrk = [];
-				var result;
-				while (result = re.exec(midi)) {
-					mtrk.push(result[1]);
-				}
-				return mtrk;
-			}
+        var note = [];
+        note[0] = "do";
+        note[1] = "do#";
+        note[2] = "re";
+        note[3] = "mib";
+        note[4] = "mi";
+        note[5] = "fa";
+        note[6] = "fa#";
+        note[7] = "sol";
+        note[8] = "sol#";
+        note[9] = "la";
+        note[10] = "sib";
+        note[11] = "si";
+        note[12] = "do+";
+        note[13] = "do#+";
+        note[14] = "re+";
+        note[15] = "mib+";
+        note[16] = "mi+";
+        note[17] = "fa+";
+        note[18] = "fa#+";
+        note[19] = "sol+";
 
-			function print_hex(str) {
-				var result = "";
-				for (var i = 0; i < str.length; i++) {
-					result += str.charCodeAt(i).toString(16); 
-				}
-				return result;
-			}
+        var tabs = [
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
+            [2, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+            [2, 2, 2, 2, 2, 2, 2, 0, 0, 0],
+            [2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+            [2, 2, 2, 2, 2, 0, 2, 2, 2, 2],
+            [2, 2, 2, 2, 0, 2, 2, 2, 0, 0],
+            [2, 2, 2, 2, 0, 0, 0, 0, 0, 0],
+            [2, 2, 2, 0, 2, 2, 0, 0, 0, 0],
+            [2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+            [2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
+            [2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+            [2, 0, 2, 0, 0, 0, 0, 0, 0, 0],
+            [0, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
+            [0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+            [1, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+            [1, 2, 2, 2, 2, 0, 2, 2, 0, 0],
+            [1, 2, 2, 2, 0, 2, 0, 0, 0, 0],
+            [1, 2, 2, 2, 0, 0, 0, 0, 0, 0]
+        ]
 
-			// Convertit un "variable length quantity" (BinaryString) en entier.
-			function vlq_to_int(vlq) {
-				var entier = 0;
-				for (var i = 0; i < vlq.length; i++) {
-					entier += (vlq.charCodeAt(vlq.length - 1 - i) & 0x7F) << (i * 7);
-				}
-				return entier;
-			}
+        // Some notes can be added if necessary
+        function init() {
+            var input = prompt("Veuillez rentrer une mélodie :\nNote normale : nom de la note sans accent en minuscules\nNote bémole : nom de la note avec un b à la fin\nNote dièse : nom de la note avec un # à la fin\nNote de l'octave suivante : nom de la note (avec bémole ou dièse si besoin) avec un + à la fin\n\nExemple : sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol");
+            generate(input);
+        }
 
-			function test() {
-			}
-		</script>
-	</head>
-	<body onload="test()">
-		<div id="menu">
-			<button id="toggle_affichage_notes" onclick="cacher_notes()">Cacher les notes</button>
-			<button onclick="init()">Convertir une mélodie</button>
-			<input type="file" id="file" onchange="charger_midi()"></input>
-			<button onclick="generer('sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si do+ re+ mi+ fa+ re+ si do+')">The Wind Waker (partie 1)</button>
-			<button disabled><i>The Wind Waker (partie 2)</i></button>
-		</div>
-		<div id="partition">
-		</div>
-	</body>
+        function generate(melodie) {
+            document.getElementById("partition").innerHTML = melodie.replace(/(\S*)\s*/g, '<div class="$1"></div>');
+            for (var i = 0; i < tabs.length; i++) {
+                var tab = tabs[i];
+                var tablature = '<ul class="tablature"><li class="trou ' + obturation[tab[0]] + '"></li><li class="espace"></li><li class="trou ' + obturation[tab[1]] + '"></"></li><li class="trou ' + obturation[tab[2]] + '"></"></li><li class="trou ' + obturation[tab[3]] + '"></"></li><li class="espace"></li><li class="trou ' + obturation[tab[4]] + '"></"></li><li class="trou ' + obturation[tab[5]] + '"></"></li><li class="double"><div class="trou ' + obturation[tab[6]] + '"></"></div><div class="trou ' + obturation[tab[7]] + '"></"></div></li><li class="double"><div class="trou ' + obturation[tab[8]] + '"></"></div><div class="trou ' + obturation[tab[9]] + '"></"></div></li></ul><p class="label">' + note[i] + '</p>';
+                var notes = document.getElementsByClassName(note[i]);
+                for (var j = 0; j < notes.length; j++) {
+                    notes[j].innerHTML = tablature;
+                }
+            }
+            var notes = document.getElementsByClassName("undefined");
+            for (var i = 0; i < notes.length; i++) {
+                notes[i].innerHTML = '<div class="nonote">?</div><p class="label">?</p>';
+            }
+        }
+
+        function showNotes() {
+            var labels = document.getElementsByClassName("label");
+            for (var i = 0; i < labels.length; i++) {
+                labels[i].style.display = "";
+            }
+            document.getElementById("toggle_affichage_notes").onclick = hideNotes;
+            document.getElementById("toggle_affichage_notes").innerHTML = 'Cacher les notes';
+        }
+
+        function hideNotes() {
+            var labels = document.getElementsByClassName("label");
+            for (var i = 0; i < labels.length; i++) {
+                labels[i].style.display = 'none';
+            }
+            document.getElementById("toggle_affichage_notes").onclick = showNotes;
+            document.getElementById("toggle_affichage_notes").innerHTML = 'Afficher les notes';
+        }
+
+        function loadMidi() {
+            var reader = new FileReader();
+            reader.onload = function() {
+                parseMidi(reader.result);
+            };
+            reader.readAsBinaryString(document.getElementById('file').files[0]);
+        }
+
+        function parseMidi(midi) {
+            divLog = document.getElementById("log");
+            const EOX = 0b11110111;
+            var suites = [];
+
+            // HEADER CHUNK
+            if (midi.startsWith("MThd")) {
+                logParsing("MThd");
+            } else {
+                logParsing("Not MThd[" + n + "] (" + midi.substr(0, 4) + ")");
+            }
+            midi = midi.slice(4);
+
+            var chunkLength = strToInt(midi.substr(0, 4));
+            logParsing("	Chunk length: " + chunkLength);
+            midi = midi.slice(4);
+
+            logParsing("	Format: " + strToInt(midi.substr(0, 2)));
+            midi = midi.slice(2);
+
+            var numberOfTrack = strToInt(midi.substr(0, 2));
+            logParsing("	Number of track: " + numberOfTrack);
+            midi = midi.slice(4);
+
+            for (var n = 0; n < numberOfTrack; n++) {
+                // TRACK CHUNKS
+                if (midi.startsWith("MTrk")) {
+                    logParsing("§MTrk");
+                } else {
+                    logParsing("Not MTrk (" + midi.substr(0, 4) + ")");
+                }
+                midi = midi.slice(4);
+
+                chunkLength = strToInt(midi.substr(0, 4));
+                logParsing("Chunk length: " + chunkLength);
+                midi = midi.slice(4);
+
+                suites.push(parseTrackChunk(midi.substr(0, chunkLength)));
+                midi = midi.slice(chunkLength);
+            }
+
+            document.getElementById("partition").innerHTML = "";
+            for (var i = 0; i < suites.length; i++) {
+                document.getElementById("partition").innerHTML += '<button onclick="generate(\'' + trackToNotes(suites[i].notes) + '\')">' + suites[i].name + ' (' + suites[i].notes.length + ' notes, MTrk de taille ' + suites[i].taille_mtrk + ')</button><p>' + suites[i].notes + '</p>';
+            }
+        }
+
+        function logParsing(str) {
+            divLog.innerHTML += str + "<br />";
+        }
+
+        function trackToNotes(tab) {
+            var min = tab[0], max = min;
+            for (var i = 1; i < tab.length; i++) {
+                if (min > tab[i]) {
+                    min = tab[i];
+                }
+                if (max < tab[i]) {
+                    max = tab[i];
+                }
+            }
+
+            console.log("Range: " + (max - min ));
+
+            var str = "";
+            for (var i = 0; i < tab.length; i++) {
+                if (tab[i] - min > note.length)
+                    console.log("Attention : note trop haute ");
+                str += note[tab[i] - min] + " ";
+            }
+
+            return str;
+        }
+
+        function parseTrackChunk(chunk) {
+            const MIDI_NOTE_OFF = 0b1000,
+                MIDI_NOTE_ON = 0b1001,
+                MIDI_KEY_PRESSURE = 0b1010,
+                MIDI_CONTROL_CHANGE = 0b1011,
+                MIDI_PROGRAM_CHANGE = 0b1100,
+                MIDI_CHANNEL_PRESSURE = 0b1101,
+                MIDI_PITCH_BEND_CHANGE = 0b1110,
+                META_EVENT = 0xFF,
+                META_TRACK_NAME = 0x03,
+                META_INSTRUMENT_NAME = 0x04;
+
+            var track = {
+                name: "Melody",
+                notes: []
+            };
+
+            while (chunk.length) {
+                // Skipping VLQ
+                while (chunk.charCodeAt(0) >= 0x80) { // Most significant bit is 1
+                    chunk = chunk.slice(1);
+                }
+                chunk = chunk.slice(1);
+
+                if (chunk.charCodeAt(0) == META_EVENT) { // Meta Event
+                    chunk = chunk.slice(1);
+                    switch (chunk.charCodeAt(0)) {
+                        case META_TRACK_NAME:
+                        case META_INSTRUMENT_NAME:
+                            track.name = chunk.slice(2, 2 + chunk.charCodeAt(1));
+                            chunk = chunk.slice(2 + chunk.charCodeAt(1));
+                            break;
+                        default:
+                            chunk = chunk.slice(2 + chunk.charCodeAt(1));
+                    }
+                } else if (chunk.charCodeAt(0) >= 0x80) { // Midi Event
+                    switch (chunk.charCodeAt(0) >> 4) {
+                        case MIDI_NOTE_OFF:
+                            logParsing("Midi note off (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(3);
+                            break;
+                        case MIDI_NOTE_ON:
+                            logParsing("Midi note on (" + chunk.charCodeAt(0).toString(2) + "," + chunk.charCodeAt(1).toString(2) + "," + chunk.charCodeAt(2).toString(2) + ")");
+                            track.notes.push(chunk.charCodeAt(1));
+                            chunk = chunk.slice(3);
+                            logParsing("3 next bytes (" + chunk.charCodeAt(0).toString(2) + "," + chunk.charCodeAt(1).toString(2) + "," + chunk.charCodeAt(2).toString(2) + ")");
+                            break;
+                        case MIDI_KEY_PRESSURE:
+                            logParsing("Midi key pressure (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(3);
+                            break;
+                        case MIDI_CONTROL_CHANGE:
+                            logParsing("Midi control change (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(3);
+                            break;
+                        case MIDI_PROGRAM_CHANGE:
+                            logParsing("Midi program change (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(2);
+                            break;
+                        case MIDI_CHANNEL_PRESSURE:
+                            logParsing("Midi channel pressure (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(2);
+                            break;
+                        case MIDI_PITCH_BEND_CHANGE:
+                            logParsing("Midi pitch bend change (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(3);
+                            break;
+                        default:
+                            logParsing("Warning: midi unknown event (" + chunk.charCodeAt(0).toString(2) + ")");
+                            chunk = chunk.slice(1);
+                    }
+                } else {
+                    logParsing("Warning: unknown event (" + chunk.charCodeAt(0).toString(2) + ")");
+                    chunk.slice(1);
+                }
+            }
+            return track;
+        }
+
+        function strToInt(str) {
+            var int = 0;
+            for (var i = 0; i < str.length; i++) {
+                int += str.charCodeAt(str.length - 1 - i) << (i * 8);
+            }
+
+            return int;
+        }
+
+        // Convert a variable length quantity to an integer
+        function vlqToInt(vlq) {
+            var int = 0;
+            for (var i = 0; i < vlq.length; i++) {
+                int += (vlq.charCodeAt(vlq.length - 1 - i) & 0x7F) << (i * 7);
+            }
+            return int;
+        }
+
+        function testVlqToInt() {
+            var got = [];
+            var expected = [];
+            expected[0] = 0x00000000; got[0] = vlqToInt(String.fromCharCode(0x00));
+            expected[1] = 0x00000040; got[1] = vlqToInt(String.fromCharCode(0x40));
+            expected[2] = 0x0000007F; got[2] = vlqToInt(String.fromCharCode(0x7F));
+            expected[3] = 0x00000080; got[3] = vlqToInt(String.fromCharCode(0x81, 0x00));
+            expected[4] = 0x00002000; got[4] = vlqToInt(String.fromCharCode(0xC0, 0x00));
+            expected[5] = 0x00003FFF; got[5] = vlqToInt(String.fromCharCode(0xFF, 0x7F));
+            expected[6] = 0x00004000; got[6] = vlqToInt(String.fromCharCode(0x81, 0x80, 0x00));
+            expected[7] = 0x00100000; got[7] = vlqToInt(String.fromCharCode(0xC0, 0x80, 0x00));
+            expected[8] = 0x001FFFFF; got[8] = vlqToInt(String.fromCharCode(0xFF, 0xFF, 0x7F));
+            expected[9] = 0x00200000; got[9] = vlqToInt(String.fromCharCode(0x81, 0x80, 0x80, 0x00));
+            expected[10] = 0x08000000; got[10] = vlqToInt(String.fromCharCode(0xC0, 0x80, 0x80, 0x00));
+            expected[11] = 0x0FFFFFFF; got[11] = vlqToInt(String.fromCharCode(0xFF, 0xFF, 0xFF, 0x7F));
+
+            console.log("test_vlq_to_int");
+            for (var i = 0; i < got.length; i++) {
+                if (got[i] == expected[i]) {
+                    console.log("Test " + (i + 1) + " passed.");
+                } else {
+                    console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16)+ ".");
+                }
+            }
+        }
+
+        function testStrToInt() {
+            var got = [];
+            var expected = [];
+            expected[0] = 0x00; got[0] = strToInt(String.fromCharCode(0x00));
+            expected[1] = 0x10; got[1] = strToInt(String.fromCharCode(0x10));
+            expected[2] = 0x5489; got[2] = strToInt(String.fromCharCode(0x54, 0x89));
+
+            console.log("test_str2int");
+            for (var i = 0; i < got.length; i++) {
+                if (got[i] == expected[i]) {
+                    console.log("Test " + (i + 1) + " passed.");
+                } else {
+                    console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16)+ ".");
+                }
+            }
+        }
+
+        function runTests() {
+            testVlqToInt();
+            testStrToInt();
+        }
+	</script>
+</head>
+<body>
+<div id="menu">
+	<button id="toggle_affichage_notes" onclick="hideNotes()">Cacher les notes</button>
+	<button onclick="init()">Convertir une mélodie</button>
+	<input type="file" id="file" onchange="loadMidi()" />
+	<button onclick="loadMidi()">Charger</button>
+	<button onclick="generate('sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si do+ re+ mi+ fa+ re+ si do+')">The Wind Waker (partie 1)</button>
+	<button disabled><i>The Wind Waker (partie 2)</i></button>
+</div>
+<div id="partition">
+</div>
+<div id="log"></div>
+</body>
 </html>

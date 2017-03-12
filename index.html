@@ -106,7 +106,7 @@ THE SOFTWARE.
 		}
 	</style>
 	<script>
-		var bouchage = ["vide", "demi", "plein"];
+		var obturation = ["vide", "demi", "plein"];
 		
 		var tabs = {};
 		tabs["do"] = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
@@ -140,7 +140,7 @@ THE SOFTWARE.
 			document.getElementById("partition").innerHTML = melodie.replace(/(\S*)\s*/g, '<div class="$1"></div>');
 			for (var key in tabs) {
 				var tab = tabs[key];
-				var tablature = '<ul class="tablature"><li class="trou ' + bouchage[tab[0]] + '"></li><li class="espace"></li><li class="trou ' + bouchage[tab[1]] + '"></"></li><li class="trou ' + bouchage[tab[2]] + '"></"></li><li class="trou ' + bouchage[tab[3]] + '"></"></li><li class="espace"></li><li class="trou ' + bouchage[tab[4]] + '"></"></li><li class="trou ' + bouchage[tab[5]] + '"></"></li><li class="double"><div class="trou ' + bouchage[tab[6]] + '"></"></div><div class="trou ' + bouchage[tab[7]] + '"></"></div></li><li class="double"><div class="trou ' + bouchage[tab[8]] + '"></"></div><div class="trou ' + bouchage[tab[9]] + '"></"></div></li></ul><p class="label">' + key + '</p>';
+				var tablature = '<ul class="tablature"><li class="trou ' + obturation[tab[0]] + '"></li><li class="espace"></li><li class="trou ' + obturation[tab[1]] + '"></"></li><li class="trou ' + obturation[tab[2]] + '"></"></li><li class="trou ' + obturation[tab[3]] + '"></"></li><li class="espace"></li><li class="trou ' + obturation[tab[4]] + '"></"></li><li class="trou ' + obturation[tab[5]] + '"></"></li><li class="double"><div class="trou ' + obturation[tab[6]] + '"></"></div><div class="trou ' + obturation[tab[7]] + '"></"></div></li><li class="double"><div class="trou ' + obturation[tab[8]] + '"></"></div><div class="trou ' + obturation[tab[9]] + '"></"></div></li></ul><p class="label">' + key + '</p>';
 				var notes = document.getElementsByClassName(key);
 				for (var i = 0; i < notes.length; i++) {
 					notes[i].innerHTML = tablature;
