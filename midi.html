@@ -24,481 +24,526 @@ THE SOFTWARE.
 -->
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Recorder Project</title>
-    <style>
-        * {
-            padding: 0;
-            margin: 0;
-            font-family: sans-serif
-        }
+	<meta charset="utf-8">
+	<title>Recorder Project</title>
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+			font-family: sans-serif
+		}
 
-        #menu {
-            padding: 10px;
-            border-bottom: 2px solid black;
-        }
+		#menu {
+			padding: 10px;
+			border-bottom: 2px solid black;
+		}
 
-        #menu button {
-            border: 2px solid black;
-            border-radius: 5px;
-            background-color: white;
-        }
+		#menu button {
+			border: 2px solid black;
+			border-radius: 5px;
+			background-color: white;
+		}
 
-        #partition {
-            padding: 10px;
-        }
+		#partition {
+			padding: 10px;
+		}
 
-        #partition > div {
-            margin-bottom: 10px;
-            display: inline-block;
-        }
+		#partition > div {
+			margin-bottom: 10px;
+			display: inline-block;
+		}
 
-        .tablature {
-            display: inline-block;
-            list-style-type: none;
-            border: 2px solid black;
-            border-radius: 5px;
-            padding: 0;
-        }
+		.tablature {
+			display: inline-block;
+			list-style-type: none;
+			border: 2px solid black;
+			border-radius: 5px;
+			padding: 0;
+		}
 
-        .hole {
-            border: 2px solid black;
-            border-radius: 10px;
-            width: 10px;
-            height: 10px;
-            margin: 10px;
-            padding: 0;
-        }
+		.hole {
+			border: 2px solid black;
+			border-radius: 10px;
+			width: 10px;
+			height: 10px;
+			margin: 10px;
+			padding: 0;
+		}
 
-        .space {
-            height: 5px;
-        }
+		.space {
+			height: 5px;
+		}
 
-        .double {
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-        }
+		.double {
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
 
-        .double .hole {
-            display: inline-block;
-            border-radius: 5px;
-            width: 5px;
-            height: 5px;
-            margin: 2px;
-        }
+		.double .hole {
+			display: inline-block;
+			border-radius: 5px;
+			width: 5px;
+			height: 5px;
+			margin: 2px;
+		}
 
-        .full {
-            background-color: black;
-        }
+		.full {
+			background-color: black;
+		}
 
-        .empty {
-            background-color: white;
-        }
+		.empty {
+			background-color: white;
+		}
 
-        .half {
-            background: linear-gradient(white, black); /* Standard syntax */
-        }
+		.half {
+			background: linear-gradient(white, black); /* Standard syntax */
+		}
 
-        .label {
-            text-align: center;
-        }
+		.label {
+			text-align: center;
+		}
 
-        .nonote {
-            display: inline-block;
-            list-style-type: none;
-            border: 2px solid black;
-            border-radius: 5px;
-            padding: 0px;
-        }
-    </style>
-    <script>
-        const EMPTY = "empty",
-            HALF = "half",
-            FULL = "full";
-        const obturation = [EMPTY, HALF, FULL];
+		.nonote {
+			display: inline-block;
+			list-style-type: none;
+			border: 2px solid black;
+			border-radius: 5px;
+			padding: 0px;
+		}
+	</style>
+	<script>
+		const EMPTY = "empty",
+			HALF = "half",
+			FULL = "full";
+		const obturation = [EMPTY, HALF, FULL];
 
-        const MIDI_NOTE_OFF = 0b1000,
-            MIDI_NOTE_ON = 0b1001,
-            MIDI_KEY_PRESSURE = 0b1010,
-            MIDI_CONTROL_CHANGE = 0b1011,
-            MIDI_PROGRAM_CHANGE = 0b1100,
-            MIDI_CHANNEL_PRESSURE = 0b1101,
-            MIDI_PITCH_BEND_CHANGE = 0b1110,
-            META_EVENT = 0xFF,
-            META_TRACK_NAME = 0x03,
-            META_INSTRUMENT_NAME = 0x04;
+		const MIDI_NOTE_OFF = 0b1000,
+			MIDI_NOTE_ON = 0b1001,
+			MIDI_KEY_PRESSURE = 0b1010,
+			MIDI_CONTROL_CHANGE = 0b1011,
+			MIDI_PROGRAM_CHANGE = 0b1100,
+			MIDI_CHANNEL_PRESSURE = 0b1101,
+			MIDI_PITCH_BEND_CHANGE = 0b1110,
+			META_EVENT = 0xFF,
+			META_TRACK_NAME = 0x03,
+			META_INSTRUMENT_NAME = 0x04;
 
-        const note = [
-            "do",
-            "do#",
-            "re",
-            "mib",
-            "mi",
-            "fa",
-            "fa#",
-            "sol",
-            "sol#",
-            "la",
-            "sib",
-            "si",
-            "do+",
-            "do#+",
-            "re+",
-            "mib+",
-            "mi+",
-            "fa+",
-            "fa#+",
-            "sol+"
-        ];
+		const note = [
+			"do",
+			"do#",
+			"re",
+			"mib",
+			"mi",
+			"fa",
+			"fa#",
+			"sol",
+			"sol#",
+			"la",
+			"sib",
+			"si",
+			"do+",
+			"do#+",
+			"re+",
+			"mib+",
+			"mi+",
+			"fa+",
+			"fa#+",
+			"sol+"
+		];
 
-        const fingerChart = [
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
-            [2, 2, 2, 2, 2, 2, 2, 2, 0, 0],
-            [2, 2, 2, 2, 2, 2, 2, 0, 0, 0],
-            [2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
-            [2, 2, 2, 2, 2, 0, 2, 2, 2, 2],
-            [2, 2, 2, 2, 0, 2, 2, 2, 0, 0],
-            [2, 2, 2, 2, 0, 0, 0, 0, 0, 0],
-            [2, 2, 2, 0, 2, 2, 0, 0, 0, 0],
-            [2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-            [2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
-            [2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
-            [2, 0, 2, 0, 0, 0, 0, 0, 0, 0],
-            [0, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
-            [0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
-            [1, 2, 2, 2, 2, 2, 0, 0, 0, 0],
-            [1, 2, 2, 2, 2, 0, 2, 2, 0, 0],
-            [1, 2, 2, 2, 0, 2, 0, 0, 0, 0],
-            [1, 2, 2, 2, 0, 0, 0, 0, 0, 0]
-        ];
+		const fingerChart = [
+			[2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+			[2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
+			[2, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+			[2, 2, 2, 2, 2, 2, 2, 0, 0, 0],
+			[2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+			[2, 2, 2, 2, 2, 0, 2, 2, 2, 2],
+			[2, 2, 2, 2, 0, 2, 2, 2, 0, 0],
+			[2, 2, 2, 2, 0, 0, 0, 0, 0, 0],
+			[2, 2, 2, 0, 2, 2, 0, 0, 0, 0],
+			[2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+			[2, 2, 0, 2, 2, 0, 0, 0, 0, 0],
+			[2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+			[2, 0, 2, 0, 0, 0, 0, 0, 0, 0],
+			[0, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+			[0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
+			[0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+			[1, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+			[1, 2, 2, 2, 2, 0, 2, 2, 0, 0],
+			[1, 2, 2, 2, 0, 2, 0, 0, 0, 0],
+			[1, 2, 2, 2, 0, 0, 0, 0, 0, 0]
+		];
 
-        function askForMelody() {
-            let input = prompt("Veuillez rentrer une mélodie :\nNote normale : nom de la note sans accent en minuscules\nNote bémole : nom de la note avec un b à la fin\nNote dièse : nom de la note avec un # à la fin\nNote de l'octave suivante : nom de la note (avec bémole ou dièse si besoin) avec un + à la fin\n\nExemple : sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol");
-            generate(input);
-        }
+		let recorders;
 
-        function generate(melodie) {
-            let notes;
-            document.getElementById("partition").innerHTML = melodie.replace(/(\S*)\s*/g, '<div class="$1"></div>');
-            for (let i = 0; i < fingerChart.length; i++) {
-                let tab = fingerChart[i];
-                let tablature =
-                    '<ul class="tablature">' +
-                    '<li class="hole ' + obturation[tab[0]] + '"></li>' +
-                    '<li class="space"></li>' +
-                    '<li class="hole ' + obturation[tab[1]] + '"></li>' +
-                    '<li class="hole ' + obturation[tab[2]] + '"></li>' +
-                    '<li class="hole ' + obturation[tab[3]] + '"></li>' +
-                    '<li class="space"></li>' +
-                    '<li class="hole ' + obturation[tab[4]] + '"></li>' +
-                    '<li class="hole ' + obturation[tab[5]] + '"></li>' +
-                    '<li class="double">' +
-                    '<div class="hole ' + obturation[tab[6]] + '"></div>' +
-                    '<div class="hole ' + obturation[tab[7]] + '"></div>' +
-                    '</li>' +
-                    '<li class="double">' +
-                    '<div class="hole ' + obturation[tab[8]] + '"></div>' +
-                    '<div class="hole ' + obturation[tab[9]] + '"></div>' +
-                    '</li>' +
-                    '</ul>' +
-                    '<p class="label">' + note[i] + '</p>';
-                notes = document.getElementsByClassName(note[i]);
-                for (let j = 0; j < notes.length; j++) {
-                    notes[j].innerHTML = tablature;
-                }
-            }
-            notes = document.getElementsByClassName("undefined");
-            for (let i = 0; i < notes.length; i++) {
-                notes[i].innerHTML = '<div class="nonote">?</div><p class="label">?</p>';
-            }
-        }
+		let tracks;
 
-        function showNotes() {
-            let labels = document.getElementsByClassName("label");
-            for (let i = 0; i < labels.length; i++) {
-                labels[i].style.display = "";
-            }
-            document.getElementById("toggle_affichage_notes").onclick = hideNotes;
-            document.getElementById("toggle_affichage_notes").innerHTML = 'Cacher les notes';
-        }
+		function initRecorders() {
+			recorders = [];
+			for (let i = 0; i < fingerChart.length; i++) {
+				let holes = fingerChart[i];
+				recorders[i] =
+					'<ul class="tablature">' +
+					'<li class="hole ' + obturation[holes[0]] + '"></li>' +
+					'<li class="space"></li>' +
+					'<li class="hole ' + obturation[holes[1]] + '"></li>' +
+					'<li class="hole ' + obturation[holes[2]] + '"></li>' +
+					'<li class="hole ' + obturation[holes[3]] + '"></li>' +
+					'<li class="space"></li>' +
+					'<li class="hole ' + obturation[holes[4]] + '"></li>' +
+					'<li class="hole ' + obturation[holes[5]] + '"></li>' +
+					'<li class="double">' +
+					'<div class="hole ' + obturation[holes[6]] + '"></div>' +
+					'<div class="hole ' + obturation[holes[7]] + '"></div>' +
+					'</li>' +
+					'<li class="double">' +
+					'<div class="hole ' + obturation[holes[8]] + '"></div>' +
+					'<div class="hole ' + obturation[holes[9]] + '"></div>' +
+					'</li>' +
+					'</ul>' +
+					'<p class="label">' + note[i] + '</p>';
+			}
+		}
 
-        function hideNotes() {
-            let labels = document.getElementsByClassName("label");
-            for (let i = 0; i < labels.length; i++) {
-                labels[i].style.display = 'none';
-            }
-            document.getElementById("toggle_affichage_notes").onclick = showNotes;
-            document.getElementById("toggle_affichage_notes").innerHTML = 'Afficher les notes';
-        }
+		function init() {
+			initRecorders();
+		}
 
-        function loadMidi() {
-            let reader = new FileReader();
-            reader.onload = function () {
-                parseMidi(reader.result);
-            };
-            reader.readAsBinaryString(document.getElementById('file').files[0]);
-        }
+		function askForMelody() {
+			let input = prompt("Veuillez rentrer une mélodie :\nNote normale : nom de la note sans accent en minuscules\nNote bémole : nom de la note avec un b à la fin\nNote dièse : nom de la note avec un # à la fin\nNote de l'octave suivante : nom de la note (avec bémole ou dièse si besoin) avec un + à la fin\n\nExemple : sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol");
+			generateFromText(input);
+		}
 
-        function parseMidi(midi) {
-            let suites = [];
+		function fillTheWorldWithRecordersForMelody(melody) {
+			document.getElementById("partition").innerHTML = melody.replace(/(\S*)\s*/g, '<div class="$1"></div>');
 
-            // HEADER CHUNK
-            if (midi.startsWith("MThd")) {
-                logParsing("MThd");
-            } else {
-                logParsing("Not MThd[" + n + "] (" + midi.substr(0, 4) + ")");
-            }
-            midi = midi.slice(4);
+			for (let i = 0; i < fingerChart.length; i++) {
+				let emptyRecorders = document.getElementsByClassName(note[i]);
+				for (let j = 0; j < emptyRecorders.length; j++) {
+					emptyRecorders[j].innerHTML = recorders[i];
+				}
+			}
+			let unknownRecorders = document.getElementsByClassName("undefined");
+			for (let i = 0; i < unknownRecorders.length; i++) {
+				unknownRecorders[i].innerHTML = '<div class="nonote">?</div><p class="label">?</p>';
+			}
+		}
+		function generateFromTrack(trackNumber) {
+			let melody = trackToNotes(tracks[trackNumber].notes);
+			fillTheWorldWithRecordersForMelody(melody);
+		}
 
-            let chunkLength = strToInt(midi.substr(0, 4));
-            logParsing("	Chunk length: " + chunkLength);
-            midi = midi.slice(4);
+		function generateFromTrackWithFirstNote(trackNumber) {
+			let firstNote = parseInt(prompt("Quelle not de base ? (0 = do)"));
+			let melody = trackToNotes(tracks[trackNumber].notes, firstNote);
+			fillTheWorldWithRecordersForMelody(melody);
+		}
 
-            logParsing("	Format: " + strToInt(midi.substr(0, 2)));
-            midi = midi.slice(2);
+		function generateFromText(melody) {
+			fillTheWorldWithRecordersForMelody(melody);
+		}
 
-            const numberOfTrack = strToInt(midi.substr(0, 2));
-            logParsing("	Number of track: " + numberOfTrack);
-            midi = midi.slice(4);
+		function generateWindWaker1() {
+			fillTheWorldWithRecordersForMelody('sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si do+ re+ mi+ fa+ re+ si do+');
+		}
 
-            for (let n = 0; n < numberOfTrack; n++) {
-                // TRACK CHUNKS
-                if (midi.startsWith("MTrk")) {
-                    logParsing("§MTrk");
-                } else {
-                    logParsing("Not MTrk (" + midi.substr(0, 4) + ")");
-                }
-                midi = midi.slice(4);
+		function showNotes() {
+			let labels = document.getElementsByClassName("label");
+			for (let i = 0; i < labels.length; i++) {
+				labels[i].style.display = "";
+			}
+			document.getElementById("toggle_affichage_notes").onclick = hideNotes;
+			document.getElementById("toggle_affichage_notes").innerHTML = 'Cacher les notes';
+		}
 
-                chunkLength = strToInt(midi.substr(0, 4));
-                logParsing("Chunk length: " + chunkLength);
-                midi = midi.slice(4);
+		function hideNotes() {
+			let labels = document.getElementsByClassName("label");
+			for (let i = 0; i < labels.length; i++) {
+				labels[i].style.display = 'none';
+			}
+			document.getElementById("toggle_affichage_notes").onclick = showNotes;
+			document.getElementById("toggle_affichage_notes").innerHTML = 'Afficher les notes';
+		}
 
-                suites.push(parseTrackChunk(midi.substr(0, chunkLength)));
-                midi = midi.slice(chunkLength);
-            }
+		function loadMidi() {
+			let reader = new FileReader();
+			reader.onload = function () {
+				parseMidi(reader.result);
+			};
+			reader.readAsBinaryString(document.getElementById('file').files[0]);
+		}
 
-            document.getElementById("partition").innerHTML = "";
-            for (let i = 0; i < suites.length; i++) {
-                document.getElementById("partition").innerHTML += '<button onclick="generate(\'' + trackToNotes(suites[i].notes) + '\')">' + suites[i].name + ' (' + suites[i].notes.length + ' notes)</button><p>' + suites[i].notes + '</p>';
-            }
-        }
+		function parseMidi(midi) {
+			tracks = [];
 
-        function trackToNotes(tab) {
-            let i;
-            let min = tab[0], max = min;
-            for (i = 1; i < tab.length; i++) {
-                if (min > tab[i]) {
-                    min = tab[i];
-                }
-                if (max < tab[i]) {
-                    max = tab[i];
-                }
-            }
+			// HEADER CHUNK
+			if (midi.startsWith("MThd")) {
+				logParsing("MThd");
+			} else {
+				logParsing("Not MThd (" + midi.substr(0, 4) + ")");
+			}
+			midi = midi.slice(4);
 
-            console.log("Range: " + (max - min ));
+			let chunkLength = strToInt(midi.substr(0, 4));
+			logParsing("	Chunk length: " + chunkLength);
+			midi = midi.slice(4);
 
-            let str = "";
-            for (i = 0; i < tab.length; i++) {
-                if (tab[i] - min > note.length)
-                    console.log("Attention : note trop haute ");
-                str += note[tab[i] - min] + " ";
-            }
+			logParsing("	Format: " + strToInt(midi.substr(0, 2)));
+			midi = midi.slice(2);
 
-            return str;
-        }
+			const numberOfTrack = strToInt(midi.substr(0, 2));
+			logParsing("	Number of track: " + numberOfTrack);
+			midi = midi.slice(4);
 
-        function parseTrackChunk(chunk) {
-            let track = {
-                name: "Melody",
-                notes: []
-            };
+			for (let n = 0; n < numberOfTrack; n++) {
+				// TRACK CHUNKS
+				if (midi.startsWith("MTrk")) {
+					logParsing("§MTrk");
+				} else {
+					logParsing("Not MTrk (" + midi.substr(0, 4) + ")");
+				}
+				midi = midi.slice(4);
 
-            let runningStatus;
+				chunkLength = strToInt(midi.substr(0, 4));
+				logParsing("Chunk length: " + chunkLength);
+				midi = midi.slice(4);
 
-            while (chunk.length) {
-                // Skipping VLQ
-                while (chunk.charCodeAt(0) >= 0x80) { // Most significant bit is 1
-                    chunk = chunk.slice(1);
-                }
-                chunk = chunk.slice(1);
+				tracks.push(parseTrackChunk(midi.substr(0, chunkLength)));
+				midi = midi.slice(chunkLength);
+			}
 
-                if (chunk.charCodeAt(0) == META_EVENT) { // Meta Event
-                    logParsing("META");
-                    runningStatus = null;
-                    chunk = chunk.slice(1);
-                    let event = chunk.charCodeAt(0);
-                    chunk = chunk.slice(1);
-                    let vlq = "";
-                    while (chunk.charCodeAt(0) >= 0x80) { // Most significant bit is 1
-                        vlq += chunk.charAt(0);
-                        chunk = chunk.slice(1);
-                    }
-                    vlq += chunk.charAt(0);
-                    chunk = chunk.slice(1);
-                    let length = vlqToInt(vlq);
-                    switch (event) {
-                        case META_TRACK_NAME:
-                        case META_INSTRUMENT_NAME:
-                            logParsing("Meta name");
-                            track.name = chunk.substr(0, length);
-                            chunk = chunk.slice(length);
-                            break;
-                        default:
-                            logParsing("Meta unknown");
-                            chunk = chunk.slice(length);
-                    }
-                } else if (chunk.charCodeAt(0) >= 0x80) { // Midi Event
-                    //logParsing("MIDI");
-                    runningStatus = chunk.charCodeAt(0);
-                    chunk = chunk.slice(1);
-                    chunk = chunk.slice(parseMidiEvent(chunk, track, runningStatus));
-                } else {
-                    //logParsing("MIDI (RS) " + chunk.charCodeAt(0).toString(16));
-                    chunk = chunk.slice(parseMidiEvent(chunk, track, runningStatus));
-                }
-            }
-            return track;
-        }
+			document.getElementById("partition").innerHTML = "";
+			for (let i = 0; i < tracks.length; i++) {
+				if (tracks[i].notes.length) {
+					document.getElementById("partition").innerHTML +=
+						'<p>' + tracks[i].name + ' (' + tracks[i].notes.length + ' notes)</p>' +
+						'<button onclick="generateFromTrack(' + i + ')">(le plus grave possible)</button>' +
+						'<button onclick="generateFromTrackWithFirstNote(' + i + ')">(avec la première note)</button>';
+				}
+			}
+		}
 
-        function parseMidiEvent(chunk, track, runningStatus) {
-            switch (runningStatus >> 4) {
-                case MIDI_NOTE_OFF:
-                    logParsing("Midi note off");
-                    return 2;
-                case MIDI_NOTE_ON:
-                    if (chunk.charCodeAt(1) > 0) {
-                        logParsing("Midi note on");
-                        track.notes.push(chunk.charCodeAt(0));
-                    } else {
-                        logParsing("Midi note on (off)");
-                    }
-                    return 2;
-                case MIDI_KEY_PRESSURE:
-                    logParsing("Midi key pressure");
-                    return 2;
-                case MIDI_CONTROL_CHANGE:
-                    logParsing("Midi control change");
-                    return 2;
-                case MIDI_PROGRAM_CHANGE:
-                    logParsing("Midi program change");
-                    return 1;
-                case MIDI_CHANNEL_PRESSURE:
-                    logParsing("Midi channel pressure");
-                    return 1;
-                case MIDI_PITCH_BEND_CHANGE:
-                    logParsing("Midi pitch bend change");
-                    return 2;
-                default:
-                    logParsing("Warning: midi unknown event");
-            }
-        }
+		function trackToNotes(tab, firstNote) {
+			let offset;
+			if (firstNote !== undefined) {
+				offset = firstNote - tab[0];
+			} else {
+				let i;
+				let min = tab[0], max = min;
+				for (i = 1; i < tab.length; i++) {
+					if (min > tab[i]) {
+						min = tab[i];
+					}
+					if (max < tab[i]) {
+						max = tab[i];
+					}
+				}
+				offset = -min;
+			}
 
-        function strToInt(str) {
-            let int = 0;
-            for (let i = 0; i < str.length; i++) {
-                int += str.charCodeAt(str.length - 1 - i) << (i * 8);
-            }
+			let str = "";
+			for (let i = 0; i < tab.length; i++) {
+				if (tab[i] - firstNote > note.length) {
+					console.log("Attention : note trop haute ");
+				}
+				str += note[tab[i] + offset] + " ";
+			}
 
-            return int;
-        }
+			return str;
+		}
 
-        // Convert a variable length quantity to an integer
-        function vlqToInt(vlq) {
-            let int = 0;
-            for (let i = 0; i < vlq.length; i++) {
-                int += (vlq.charCodeAt(vlq.length - 1 - i) & 0x7F) << (i * 7);
-            }
-            return int;
-        }
+		function parseTrackChunk(chunk) {
+			let track = {
+				name: "Melody",
+				notes: []
+			};
 
-        function testVlqToInt() {
-            let expected = [
-                0x00000000,
-                0x00000040,
-                0x0000007F,
-                0x00000080,
-                0x00002000,
-                0x00003FFF,
-                0x00004000,
-                0x00100000,
-                0x001FFFFF,
-                0x00200000,
-                0x08000000,
-                0x0FFFFFFF
-            ];
-            let got = [
-                vlqToInt(String.fromCharCode(0x00)),
-                vlqToInt(String.fromCharCode(0x40)),
-                vlqToInt(String.fromCharCode(0x7F)),
-                vlqToInt(String.fromCharCode(0x81, 0x00)),
-                vlqToInt(String.fromCharCode(0xC0, 0x00)),
-                vlqToInt(String.fromCharCode(0xFF, 0x7F)),
-                vlqToInt(String.fromCharCode(0x81, 0x80, 0x00)),
-                vlqToInt(String.fromCharCode(0xC0, 0x80, 0x00)),
-                vlqToInt(String.fromCharCode(0xFF, 0xFF, 0x7F)),
-                vlqToInt(String.fromCharCode(0x81, 0x80, 0x80, 0x00)),
-                vlqToInt(String.fromCharCode(0xC0, 0x80, 0x80, 0x00)),
-                vlqToInt(String.fromCharCode(0xFF, 0xFF, 0xFF, 0x7F))
-            ];
+			let runningStatus;
 
-            console.log("test_vlq_to_int");
-            for (let i = 0; i < got.length; i++) {
-                if (got[i] == expected[i]) {
-                    console.log("Test " + (i + 1) + " passed.");
-                } else {
-                    console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16) + ".");
-                }
-            }
-        }
+			while (chunk.length) {
+				// Skipping VLQ
+				while (chunk.charCodeAt(0) >= 0x80) { // Most significant bit is 1
+					chunk = chunk.slice(1);
+				}
+				chunk = chunk.slice(1);
 
-        function testStrToInt() {
-            let expected = [
-                0x00,
-                0x10,
-                0x5489
-            ];
-            let got = [
-                strToInt(String.fromCharCode(0x00)),
-                strToInt(String.fromCharCode(0x10)),
-                strToInt(String.fromCharCode(0x54, 0x89))
-            ];
+				if (chunk.charCodeAt(0) == META_EVENT) { // Meta Event
+					logParsing("META");
+					runningStatus = null;
+					chunk = chunk.slice(1);
+					let event = chunk.charCodeAt(0);
+					chunk = chunk.slice(1);
+					let vlq = "";
+					while (chunk.charCodeAt(0) >= 0x80) { // Most significant bit is 1
+						vlq += chunk.charAt(0);
+						chunk = chunk.slice(1);
+					}
+					vlq += chunk.charAt(0);
+					chunk = chunk.slice(1);
+					let length = vlqToInt(vlq);
+					switch (event) {
+						case META_TRACK_NAME:
+						case META_INSTRUMENT_NAME:
+							logParsing("Meta name");
+							track.name = chunk.substr(0, length);
+							chunk = chunk.slice(length);
+							break;
+						default:
+							logParsing("Meta unknown");
+							chunk = chunk.slice(length);
+					}
+				} else if (chunk.charCodeAt(0) >= 0x80) { // Midi Event
+					//logParsing("MIDI");
+					runningStatus = chunk.charCodeAt(0);
+					chunk = chunk.slice(1);
+					chunk = chunk.slice(parseMidiEvent(chunk, track, runningStatus));
+				} else {
+					//logParsing("MIDI (RS) " + chunk.charCodeAt(0).toString(16));
+					chunk = chunk.slice(parseMidiEvent(chunk, track, runningStatus));
+				}
+			}
+			return track;
+		}
 
-            console.log("test_str2int");
-            for (let i = 0; i < got.length; i++) {
-                if (got[i] == expected[i]) {
-                    console.log("Test " + (i + 1) + " passed.");
-                } else {
-                    console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16) + ".");
-                }
-            }
-        }
+		function parseMidiEvent(chunk, track, runningStatus) {
+			switch (runningStatus >> 4) {
+				case MIDI_NOTE_OFF:
+					logParsing("Midi note off");
+					return 2;
+				case MIDI_NOTE_ON:
+					if (chunk.charCodeAt(1) > 0) {
+						logParsing("Midi note on");
+						track.notes.push(chunk.charCodeAt(0));
+					} else {
+						logParsing("Midi note on (off)");
+					}
+					return 2;
+				case MIDI_KEY_PRESSURE:
+					logParsing("Midi key pressure");
+					return 2;
+				case MIDI_CONTROL_CHANGE:
+					logParsing("Midi control change");
+					return 2;
+				case MIDI_PROGRAM_CHANGE:
+					logParsing("Midi program change");
+					return 1;
+				case MIDI_CHANNEL_PRESSURE:
+					logParsing("Midi channel pressure");
+					return 1;
+				case MIDI_PITCH_BEND_CHANGE:
+					logParsing("Midi pitch bend change");
+					return 2;
+				default:
+					logParsing("Warning: midi unknown event");
+			}
+		}
 
-        function runTests() {
-            testVlqToInt();
-            testStrToInt();
-        }
+		function strToInt(str) {
+			let int = 0;
+			for (let i = 0; i < str.length; i++) {
+				int += str.charCodeAt(str.length - 1 - i) << (i * 8);
+			}
 
-        function logParsing(str) {
-            console.log(str);
-        }
-    </script>
+			return int;
+		}
+
+		// Convert a variable length quantity to an integer
+		function vlqToInt(vlq) {
+			let int = 0;
+			for (let i = 0; i < vlq.length; i++) {
+				int += (vlq.charCodeAt(vlq.length - 1 - i) & 0x7F) << (i * 7);
+			}
+			return int;
+		}
+
+		function testVlqToInt() {
+			let expected = [
+				0x00000000,
+				0x00000040,
+				0x0000007F,
+				0x00000080,
+				0x00002000,
+				0x00003FFF,
+				0x00004000,
+				0x00100000,
+				0x001FFFFF,
+				0x00200000,
+				0x08000000,
+				0x0FFFFFFF
+			];
+			let got = [
+				vlqToInt(String.fromCharCode(0x00)),
+				vlqToInt(String.fromCharCode(0x40)),
+				vlqToInt(String.fromCharCode(0x7F)),
+				vlqToInt(String.fromCharCode(0x81, 0x00)),
+				vlqToInt(String.fromCharCode(0xC0, 0x00)),
+				vlqToInt(String.fromCharCode(0xFF, 0x7F)),
+				vlqToInt(String.fromCharCode(0x81, 0x80, 0x00)),
+				vlqToInt(String.fromCharCode(0xC0, 0x80, 0x00)),
+				vlqToInt(String.fromCharCode(0xFF, 0xFF, 0x7F)),
+				vlqToInt(String.fromCharCode(0x81, 0x80, 0x80, 0x00)),
+				vlqToInt(String.fromCharCode(0xC0, 0x80, 0x80, 0x00)),
+				vlqToInt(String.fromCharCode(0xFF, 0xFF, 0xFF, 0x7F))
+			];
+
+			console.log("testVlqToInt");
+			for (let i = 0; i < got.length; i++) {
+				if (got[i] == expected[i]) {
+					console.log("Test " + (i + 1) + " passed.");
+				} else {
+					console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16) + ".");
+				}
+			}
+		}
+
+		function testStrToInt() {
+			let expected = [
+				0x00,
+				0x10,
+				0x5489
+			];
+			let got = [
+				strToInt(String.fromCharCode(0x00)),
+				strToInt(String.fromCharCode(0x10)),
+				strToInt(String.fromCharCode(0x54, 0x89))
+			];
+
+			console.log("testStrToInt");
+			for (let i = 0; i < got.length; i++) {
+				if (got[i] == expected[i]) {
+					console.log("Test " + (i + 1) + " passed.");
+				} else {
+					console.log("Test " + (i + 1) + " failed, expected + " + expected[i].toString(16) + " got " + got[i].toString(16) + ".");
+				}
+			}
+		}
+
+		function runTests() {
+			testVlqToInt();
+			testStrToInt();
+		}
+
+		function logParsing(str) {
+			console.log(str);
+		}
+	</script>
 </head>
 <body>
 <div id="menu">
-    <button id="toggle_affichage_notes" onclick="hideNotes()">Cacher les notes</button>
-    <button onclick="askForMelody()">Convertir une mélodie</button>
-    <input type="file" id="file" onchange="loadMidi()"/>
-    <button onclick="loadMidi()">Charger</button>
-    <button onclick="generate('sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si sol fa do+ la si do+ re+ mi+ do+ re+ sol sol sol do+ mi+ re+ do+ si do+ la fa si sol do+ la si do+ re+ mi+ fa+ re+ si do+')">
-        The Wind Waker (partie 1)
-    </button>
-    <button disabled><i>The Wind Waker (partie 2)</i></button>
+	<button id="toggle_affichage_notes" onclick="hideNotes()">Cacher les notes</button>
+	<button onclick="askForMelody()">Convertir une mélodie</button>
+	<input type="file" id="file" onchange="loadMidi()"/>
+	<button onclick="loadMidi()">Charger</button>
+	<button onclick="generateWindWaker1()">
+		The Wind Waker (partie 1)
+	</button>
+	<button disabled><i>The Wind Waker (partie 2)</i></button>
 </div>
 <div id="partition">
 </div>
+<script>
+	init();
+</script>
 </body>
 </html>
