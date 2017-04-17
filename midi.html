@@ -127,7 +127,8 @@ THE SOFTWARE.
 			MIDI_PITCH_BEND_CHANGE = 0b1110,
 			META_EVENT = 0xFF,
 			META_TRACK_NAME = 0x03,
-			META_INSTRUMENT_NAME = 0x04;
+			META_INSTRUMENT_NAME = 0x04,
+			META_END_OF_TRACK = 0x2F;
 
 		const note = [
 			"do",
@@ -149,7 +150,11 @@ THE SOFTWARE.
 			"mi+",
 			"fa+",
 			"fa#+",
-			"sol+"
+			"sol+",
+			"sol#+",
+			"la+",
+			"sib+",
+			"si+",
 		];
 
 		const fingerChart = [
@@ -172,7 +177,11 @@ THE SOFTWARE.
 			[1, 2, 2, 2, 2, 2, 0, 0, 0, 0],
 			[1, 2, 2, 2, 2, 0, 2, 2, 0, 0],
 			[1, 2, 2, 2, 0, 2, 0, 0, 0, 0],
-			[1, 2, 2, 2, 0, 0, 0, 0, 0, 0]
+			[1, 2, 2, 2, 0, 0, 0, 0, 0, 0],
+			[1, 2, 2, 0, 2, 0, 0, 0, 0, 0],
+			[1, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+			[1, 2, 2, 0, 2, 2, 2, 2, 0, 0],
+			[1, 2, 2, 0, 2, 2, 0, 0, 0, 0]
 		];
 
 		let recorders;
@@ -369,7 +378,6 @@ THE SOFTWARE.
 				chunk = chunk.slice(1);
 
 				if (chunk.charCodeAt(0) == META_EVENT) { // Meta Event
-					logParsing("META");
 					runningStatus = null;
 					chunk = chunk.slice(1);
 					let event = chunk.charCodeAt(0);
@@ -387,12 +395,15 @@ THE SOFTWARE.
 						case META_INSTRUMENT_NAME:
 							logParsing("Meta name");
 							track.name = chunk.substr(0, length);
-							chunk = chunk.slice(length);
 							break;
+						case META_END_OF_TRACK:
+							logParsing("Meta end of track");
+							return track;
 						default:
 							logParsing("Meta unknown");
-							chunk = chunk.slice(length);
+							break;
 					}
+					chunk = chunk.slice(length);
 				} else if (chunk.charCodeAt(0) >= 0x80) { // Midi Event
 					//logParsing("MIDI");
 					runningStatus = chunk.charCodeAt(0);
